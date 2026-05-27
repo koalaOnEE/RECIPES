@@ -8,14 +8,88 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 let allRecipes = []
 let activeContinent = null
 
-// Where to place the recipe-count badge on each continent (SVG coords)
-const BADGE_POS = {
-    "North America": { x: 286, y: 72 },
-    "South America": { x: 284, y: 262 },
-    "Europe":        { x: 520, y: 50 },
-    "Africa":        { x: 530, y: 124 },
-    "Asia":          { x: 944, y: 46 },
-    "Oceania":       { x: 922, y: 294 },
+// Geographic centers (lon, lat) for badge positioning
+const CONTINENT_CENTERS = {
+    "North America": [-100, 45],
+    "South America": [-58,  -15],
+    "Europe":        [15,   52],
+    "Africa":        [20,   5],
+    "Asia":          [85,   45],
+    "Oceania":       [135,  -25],
+}
+
+let mapProjection = null
+
+// ─── Map init ───────────────────────────────────────────────────────────────
+
+async function initMap() {
+    const resp = await fetch("map.geojson")
+    const world = await resp.json()
+
+    const projection = d3.geoNaturalEarth1().fitSize([1000, 500], { type: "Sphere" })
+    const pathGen    = d3.geoPath().projection(projection)
+    mapProjection    = projection
+
+    const continentsGroup = document.getElementById("continents")
+    const clickable = ["North America", "South America", "Europe", "Africa", "Asia", "Oceania"]
+
+    clickable.forEach(continentName => {
+        const features = world.features.filter(f => f.properties.continent === continentName)
+        if (!features.length) return
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        g.setAttribute("class", "continent")
+        g.setAttribute("id", continentName.toLowerCase().replaceAll(" ", "-"))
+        g.dataset.continent = continentName
+        g.setAttribute("tabindex", "0")
+        g.setAttribute("role", "button")
+        g.setAttribute("aria-label", continentName)
+
+        features.forEach(feature => {
+            const d = pathGen(feature)
+            if (!d) return
+            const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path")
+            pathEl.setAttribute("d", d)
+            g.appendChild(pathEl)
+        })
+
+        const [cx, cy] = projection(CONTINENT_CENTERS[continentName])
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+        text.setAttribute("x", cx)
+        text.setAttribute("y", cy)
+        text.setAttribute("class", "continent-label")
+        text.textContent = continentName
+        g.appendChild(text)
+
+        continentsGroup.appendChild(g)
+    })
+
+    // Antarctica (non-interactive)
+    world.features
+        .filter(f => f.properties.continent === "Antarctica")
+        .forEach(feature => {
+            const d = pathGen(feature)
+            if (!d) return
+            const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path")
+            pathEl.setAttribute("d", d)
+            pathEl.setAttribute("class", "antarctica-land")
+            continentsGroup.appendChild(pathEl)
+        })
+
+    document.querySelectorAll(".continent").forEach(el => {
+        el.addEventListener("click", () => {
+            const continent = el.dataset.continent
+            if (activeContinent === continent) { closeSidebar(); return }
+            document.querySelectorAll(".continent.active").forEach(c => c.classList.remove("active"))
+            el.classList.add("active")
+            openSidebar(continent)
+        })
+        el.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click() }
+        })
+    })
+
+    renderBadges()
 }
 
 // ─── Data ───────────────────────────────────────────────────────────────────
@@ -33,6 +107,7 @@ async function loadRecipes() {
 function renderBadges() {
     const group = document.getElementById("recipe-badges")
     group.innerHTML = ""
+    if (!mapProjection) return
 
     const counts = {}
     allRecipes.forEach(r => {
@@ -40,21 +115,22 @@ function renderBadges() {
     })
 
     Object.entries(counts).forEach(([continent, count]) => {
-        const pos = BADGE_POS[continent]
-        if (!pos) return
+        const center = CONTINENT_CENTERS[continent]
+        if (!center) return
+        const [x, y] = mapProjection(center)
 
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
         g.setAttribute("class", "recipe-badge")
         g.setAttribute("pointer-events", "none")
 
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
-        circle.setAttribute("cx", pos.x)
-        circle.setAttribute("cy", pos.y)
+        circle.setAttribute("cx", x)
+        circle.setAttribute("cy", y)
         circle.setAttribute("r", "11")
 
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text")
-        text.setAttribute("x", pos.x)
-        text.setAttribute("y", pos.y)
+        text.setAttribute("x", x)
+        text.setAttribute("y", y)
         text.textContent = count
 
         g.appendChild(circle)
@@ -118,26 +194,6 @@ function closeSidebar() {
     document.querySelectorAll(".continent.active").forEach(el => el.classList.remove("active"))
 }
 
-// ─── Continent click handlers ────────────────────────────────────────────────
-
-document.querySelectorAll(".continent").forEach(el => {
-    el.addEventListener("click", () => {
-        const continent = el.dataset.continent
-
-        if (activeContinent === continent) {
-            closeSidebar()
-            return
-        }
-
-        document.querySelectorAll(".continent.active").forEach(c => c.classList.remove("active"))
-        el.classList.add("active")
-        openSidebar(continent)
-    })
-
-    el.addEventListener("keydown", e => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click() }
-    })
-})
 
 document.getElementById("close-sidebar").addEventListener("click", closeSidebar)
 document.getElementById("overlay").addEventListener("click", () => {
@@ -236,4 +292,5 @@ function showToast(msg) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
+initMap()
 loadRecipes()

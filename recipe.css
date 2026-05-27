@@ -112,8 +112,14 @@ body {
 .continent path {
     fill: var(--land);
     stroke: var(--land-stroke);
-    stroke-width: 1.2;
+    stroke-width: 0.4;
     transition: fill var(--dur) var(--ease), filter var(--dur) var(--ease);
+}
+
+.antarctica-land {
+    fill: var(--land);
+    opacity: 0.55;
+    pointer-events: none;
 }
 
 .continent:hover path,

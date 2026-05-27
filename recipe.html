@@ -32,45 +32,8 @@
                     <line x1="500" y1="0" x2="500" y2="500" stroke-dasharray="1,8"/>
                 </g>
 
-                <!-- Antarctica strip -->
-                <path d="M0,470 L1000,470 L1000,500 L0,500 Z" fill="var(--land)" opacity="0.55" pointer-events="none"/>
-
-                <!-- ── North America ── -->
-                <g class="continent" id="north-america" data-continent="North America" tabindex="0" role="button" aria-label="North America">
-                    <path d="M60,80 L120,42 L175,32 L235,48 L285,72 L305,78 L295,125 L285,162 L275,200 L260,220 L245,248 L228,258 L205,248 L190,232 L178,215 L162,210 L150,190 L142,175 L130,162 L115,152 L98,148 L80,138 L62,112 Z"/>
-                    <text x="183" y="155" class="continent-label">North America</text>
-                </g>
-
-                <!-- ── South America ── -->
-                <g class="continent" id="south-america" data-continent="South America" tabindex="0" role="button" aria-label="South America">
-                    <path d="M215,258 L248,252 L272,265 L288,295 L292,332 L288,370 L270,408 L248,428 L225,430 L205,418 L192,395 L186,362 L188,328 L195,298 L205,272 Z"/>
-                    <text x="238" y="338" class="continent-label">South</text>
-                    <text x="238" y="354" class="continent-label">America</text>
-                </g>
-
-                <!-- ── Europe ── -->
-                <g class="continent" id="europe" data-continent="Europe" tabindex="0" role="button" aria-label="Europe">
-                    <path d="M392,52 L422,44 L456,40 L492,44 L516,54 L525,70 L520,88 L512,102 L498,115 L475,122 L450,120 L428,112 L410,100 L398,84 L390,68 Z"/>
-                    <text x="457" y="86" class="continent-label">Europe</text>
-                </g>
-
-                <!-- ── Africa ── -->
-                <g class="continent" id="africa" data-continent="Africa" tabindex="0" role="button" aria-label="Africa">
-                    <path d="M400,124 L435,115 L465,114 L498,118 L522,132 L534,158 L538,192 L535,235 L528,272 L518,310 L500,342 L478,362 L452,370 L425,364 L405,344 L390,314 L382,275 L380,235 L382,195 L388,162 L396,140 Z"/>
-                    <text x="457" y="248" class="continent-label">Africa</text>
-                </g>
-
-                <!-- ── Asia ── -->
-                <g class="continent" id="asia" data-continent="Asia" tabindex="0" role="button" aria-label="Asia">
-                    <path d="M522,38 L572,30 L642,24 L722,26 L792,34 L852,50 L898,68 L932,90 L950,118 L952,152 L938,188 L914,212 L885,232 L848,245 L805,250 L760,244 L718,234 L672,222 L635,212 L598,200 L564,184 L542,164 L532,142 L524,118 L520,90 L520,60 Z"/>
-                    <text x="730" y="148" class="continent-label">Asia</text>
-                </g>
-
-                <!-- ── Oceania ── -->
-                <g class="continent" id="oceania" data-continent="Oceania" tabindex="0" role="button" aria-label="Oceania">
-                    <path d="M782,300 L826,286 L872,287 L910,300 L928,324 L925,358 L908,375 L875,386 L840,384 L810,370 L792,348 L782,322 Z"/>
-                    <text x="854" y="338" class="continent-label">Oceania</text>
-                </g>
+                <!-- Continents rendered from map.geojson by JS -->
+                <g id="continents"></g>
 
                 <!-- Recipe count badges (filled by JS) -->
                 <g id="recipe-badges"></g>
@@ -129,6 +92,7 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="recipe.js"></script>
 </body>
 </html>
